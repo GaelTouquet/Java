@@ -14,6 +14,26 @@ abstract class Animal {
         return String.format("Hello I'm %s a %s, which is a %s and I eat %s", this.name, this.className, this.category,
                 this.food);
     }
+
+    public void setName(String name){
+        this.name = name;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    public String getFood(){
+        return this.food;
+    }
+
+    public String getCategory(){
+        return this.category;
+    }
+
+    public String getClassName(){
+        return this.className;
+    }
 }
 
 abstract class Mammal extends Animal {
