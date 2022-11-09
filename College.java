@@ -25,7 +25,7 @@ abstract class Staff extends Person {
 
     @Override
     public String toString() {
-        return String.format("%s    salary : %s", super.toString(), this.salary);
+        return String.format("%s    salary : %.2f", super.toString(), this.salary);
     }
 }
 
@@ -55,7 +55,7 @@ class Teacher extends Staff {
 
     @Override
     public String toString() {
-        return String.format("%s   field : %s", super.toString(), this.field);
+        return String.format("%s   field : %s", super.toString(), this.field.toString());
     }
 
     public Teacher(String name, double salary, Field field) {
@@ -99,7 +99,7 @@ class Student extends Person {
 
     @Override
     public String toString() {
-        return String.format("%s   mean : %s", super.toString(), this.mean());
+        return String.format("%s   mean : %2.2f", super.toString(), this.mean());
     }
 
     public void setLevel(Level level) {
@@ -217,8 +217,8 @@ class Grade {
 
     @Override
     public String toString() {
-        return String.format("grade : %2.2d   student : %s   field : %s   teacher : %s", this.grade, this.student,
-                this.field, this.teacher);
+        return String.format("grade : %2.2f   student : %s   field : %s   teacher : %s", this.grade, this.student.name,
+                this.field.toString(), this.teacher.name);
     }
 
     public Grade(double grade, Teacher teacher, Student student) {
@@ -282,7 +282,7 @@ public class College {
     public String toString() {
         String output = "";
         output += "staff:\n";
-        // output += String.join("   \n", getStaff());
+        // output += String.join(" \n", getStaff());
         for (Staff staff : this.getStaff()) {
             output += "   " + staff + "\n";
         }
@@ -328,6 +328,8 @@ public class College {
         myCollege.addGrade(math_billy_october);
 
         System.out.println(myCollege);
+
+        System.out.println(math_billy_october);
     }
 
 }
