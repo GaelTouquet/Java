@@ -7,6 +7,10 @@ abstract class Person {
         this.name = name;
     }
 
+    public String getName() {
+        return name;
+    }
+
     @Override
     public String toString() {
         return String.format("name : %s", this.name);
@@ -21,6 +25,10 @@ abstract class Staff extends Person {
         super(name);
         // TODO add salary validity check
         this.salary = salary;
+    }
+
+    public double getSalary() {
+        return salary;
     }
 
     @Override
@@ -58,6 +66,22 @@ class Teacher extends Staff {
         return String.format("%s   field : %s", super.toString(), this.field.toString());
     }
 
+    public Field getField() {
+        return field;
+    }
+
+    public ArrayList<Grade> getGrades() {
+        return grades;
+    }
+
+    public ArrayList<Student> getStudents() {
+        return students;
+    }
+
+    public ArrayList<Level> getLevels() {
+        return levels;
+    }
+
     public Teacher(String name, double salary, Field field) {
         super(name, salary);
         this.field = field;
@@ -87,6 +111,22 @@ class Student extends Person {
     ArrayList<Field> fields = new ArrayList<Field>();
     ArrayList<Teacher> teachers = new ArrayList<Teacher>();
     Level level;
+
+    public ArrayList<Grade> getGrades() {
+        return grades;
+    }
+
+    public ArrayList<Field> getFields() {
+        return fields;
+    }
+
+    public ArrayList<Teacher> getTeachers() {
+        return teachers;
+    }
+
+    public Level getLevel() {
+        return level;
+    }
 
     public double mean() {
         double output = 0;
@@ -142,6 +182,26 @@ class Level {
         return this.name;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<Teacher> getTeachers() {
+        return teachers;
+    }
+
+    public ArrayList<Student> getStudents() {
+        return students;
+    }
+
+    public ArrayList<Field> getFields() {
+        return fields;
+    }
+
+    public ArrayList<Grade> getGrades() {
+        return grades;
+    }
+
     public Level(String name) {
         // TODO add name validity check
         this.name = name;
@@ -176,6 +236,26 @@ class Field {
     ArrayList<Student> students = new ArrayList<Student>();
     ArrayList<Grade> grades = new ArrayList<Grade>();
     ArrayList<Level> levels = new ArrayList<Level>();
+
+    public String getName() {
+        return name;
+    }
+
+    public ArrayList<Teacher> getTeachers() {
+        return teachers;
+    }
+
+    public ArrayList<Student> getStudents() {
+        return students;
+    }
+
+    public ArrayList<Grade> getGrades() {
+        return grades;
+    }
+
+    public ArrayList<Level> getLevels() {
+        return levels;
+    }
 
     public Field(String name) {
         this.name = name;
@@ -278,6 +358,14 @@ public class College {
         return output;
     }
 
+    public void printGrades(){
+        String output = "grades :\n";
+        for (Grade grade : grades) {
+            output += grade.toString() + "\n";
+        }
+        System.out.println(output);
+    }
+
     @Override
     public String toString() {
         String output = "";
@@ -325,11 +413,13 @@ public class College {
 
         // Grades
         Grade math_billy_october = new Grade(12, isabelle, billy);
+        System.out.println(math_billy_october);
         myCollege.addGrade(math_billy_october);
+        myCollege.addGrade(new Grade(8, dupond, toto));
 
         System.out.println(myCollege);
 
-        System.out.println(math_billy_october);
+        myCollege.printGrades();
     }
 
 }
