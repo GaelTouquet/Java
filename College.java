@@ -1,4 +1,8 @@
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 abstract class Person {
     String name;
@@ -55,19 +59,71 @@ class Secretary extends AdministrativeStaff {
     }
 }
 
-class Teacher extends Staff {
-    Field field; // TODO check with client, can a teacher teach different fields?
+class TeachingModule {
+    Teacher teacher;
+    Field field;
+    Level level;
     ArrayList<Grade> grades = new ArrayList<Grade>();
     ArrayList<Student> students = new ArrayList<Student>();
-    ArrayList<Level> levels = new ArrayList<Level>();
 
-    @Override
-    public String toString() {
-        return String.format("%s   field : %s", super.toString(), this.field.toString());
+    public TeachingModule(Teacher teacher, Field field, Level level) {
+        this.teacher = teacher;
+        teacher.addTeachingModule(this);
+        this.field = field;
+        field.addTeachingModule(this);
+        this.level = level;
+        level.addTeachingModule(this);
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
     }
 
     public Field getField() {
         return field;
+    }
+
+    public Level getLevel() {
+        return level;
+    }
+
+    public ArrayList<Grade> getGrades() {
+        return grades;
+    }
+
+    public ArrayList<Student> getStudents() {
+        return students;
+    }
+
+    public void addGrade(Grade grade) {
+        if (!this.grades.contains(grade))
+            this.grades.add(grade);
+    }
+
+    public void addStudent(Student student) {
+        if (!this.students.contains(student)) {
+            this.students.add(student);
+            student.addTeachingModule(this);
+        }
+    }
+
+}
+
+class Teacher extends Staff {
+    ArrayList<Field> fields = new ArrayList<Field>();
+    ArrayList<Grade> grades = new ArrayList<Grade>();
+    ArrayList<Student> students = new ArrayList<Student>();
+    ArrayList<Level> levels = new ArrayList<Level>();
+    ArrayList<TeachingModule> teachingModules = new ArrayList<TeachingModule>();
+
+    @Override
+    public String toString() {
+        List<String> fieldsNames = fields.stream().map(Field::getName).collect(Collectors.toList());
+        return String.format("%s   fields : %s", super.toString(), String.join(",", fieldsNames));
+    }
+
+    public ArrayList<Field> getFields() {
+        return fields;
     }
 
     public ArrayList<Grade> getGrades() {
@@ -82,25 +138,52 @@ class Teacher extends Staff {
         return levels;
     }
 
-    public Teacher(String name, double salary, Field field) {
+    public Teacher(String name, double salary) {
         super(name, salary);
-        this.field = field;
-        field.addTeacher(this);
     }
 
+    public void addField(Field field) {
+        if (!this.fields.contains(field)) {
+            this.fields.add(field);
+            field.addTeacher(this);
+        }
+    }
+
+    // TODO here addgrade can be used to mess up the system, a grade shouldn't be added to a teacher outside of friendly classes
     public void addGrade(Grade grade) {
         if (!this.grades.contains(grade))
             this.grades.add(grade);
     }
 
     public void addStudent(Student student) {
-        if (!this.students.contains(student))
+        if (!this.students.contains(student)) {
             this.students.add(student);
+            student.addTeacher(this);
+        }
+    }
+
+    public ArrayList<TeachingModule> getTeachingModules() {
+        return teachingModules;
     }
 
     public void addLevel(Level level) {
-        if (!this.levels.contains(level))
+        if (!this.levels.contains(level)) {
             this.levels.add(level);
+            level.addTeacher(this);
+        }
+    }
+
+    public void addTeachingModule(TeachingModule teachingModule) {
+        if (!this.teachingModules.contains(teachingModule))
+            this.teachingModules.add(teachingModule);
+        if (!this.fields.contains(teachingModule.getField()))
+            this.addField(teachingModule.getField());
+        if (!this.levels.contains(teachingModule.getLevel()))
+            this.addLevel(teachingModule.getLevel());
+        for (Student student : teachingModule.getStudents()) {
+            if (!this.students.contains(student))
+                this.addStudent(student);
+        }
     }
 
     // TODO add remove student and grade and fields
@@ -110,6 +193,7 @@ class Student extends Person {
     ArrayList<Grade> grades = new ArrayList<Grade>();
     ArrayList<Field> fields = new ArrayList<Field>();
     ArrayList<Teacher> teachers = new ArrayList<Teacher>();
+    ArrayList<TeachingModule> teachingModules = new ArrayList<TeachingModule>();
     Level level;
 
     public ArrayList<Grade> getGrades() {
@@ -158,13 +242,28 @@ class Student extends Person {
     }
 
     public void addField(Field field) {
-        if (!this.fields.contains(field))
+        if (!this.fields.contains(field)) {
             this.fields.add(field);
+            field.addStudent(this);
+        }
     }
 
     public void addTeacher(Teacher teacher) {
-        if (!this.teachers.contains(teacher))
+        if (!this.teachers.contains(teacher)) {
             this.teachers.add(teacher);
+            teacher.addStudent(this);
+        }
+    }
+
+    public void addTeachingModule(TeachingModule teachingModule) {
+        if (!this.teachingModules.contains(teachingModule)) {
+            this.teachingModules.add(teachingModule);
+            teachingModule.addStudent(this);
+        }
+    }
+
+    public ArrayList<TeachingModule> getTeachingModules() {
+        return teachingModules;
     }
 
     // TODO add remove teacher and grade and fields
@@ -176,10 +275,15 @@ class Level {
     ArrayList<Student> students = new ArrayList<Student>();
     ArrayList<Field> fields = new ArrayList<Field>();
     ArrayList<Grade> grades = new ArrayList<Grade>();
+    ArrayList<TeachingModule> teachingModules = new ArrayList<TeachingModule>();
 
     @Override
     public String toString() {
         return this.name;
+    }
+
+    public ArrayList<TeachingModule> getTeachingModules() {
+        return teachingModules;
     }
 
     public String getName() {
@@ -208,8 +312,10 @@ class Level {
     }
 
     public void addTeacher(Teacher teacher) {
-        if (!this.teachers.contains(teacher))
+        if (!this.teachers.contains(teacher)) {
             this.teachers.add(teacher);
+            teacher.addLevel(this);
+        }
     }
 
     public void addStudent(Student student) {
@@ -218,13 +324,20 @@ class Level {
     }
 
     public void addField(Field field) {
-        if (!this.fields.contains(field))
+        if (!this.fields.contains(field)) {
             this.fields.add(field);
+            field.addLevel(this);
+        }
     }
 
     public void addGrade(Grade grade) {
         if (!this.grades.contains(grade))
             this.grades.add(grade);
+    }
+
+    public void addTeachingModule(TeachingModule teachingModule) {
+        if (!this.teachingModules.contains(teachingModule))
+            this.teachingModules.add(teachingModule);
     }
 
     // TODO add remove teacher and student and fields
@@ -236,6 +349,7 @@ class Field {
     ArrayList<Student> students = new ArrayList<Student>();
     ArrayList<Grade> grades = new ArrayList<Grade>();
     ArrayList<Level> levels = new ArrayList<Level>();
+    ArrayList<TeachingModule> teachingModules = new ArrayList<TeachingModule>();
 
     public String getName() {
         return name;
@@ -287,6 +401,15 @@ class Field {
         if (!this.levels.contains(level))
             this.levels.add(level);
     }
+
+    public ArrayList<TeachingModule> getTeachingModules() {
+        return teachingModules;
+    }
+
+    public void addTeachingModule(TeachingModule teachingModule) {
+        if (!this.teachingModules.contains(teachingModule))
+            this.teachingModules.add(teachingModule);
+    }
 }
 
 class Grade {
@@ -294,6 +417,27 @@ class Grade {
     Teacher teacher;
     Student student;
     Field field;
+    TeachingModule teachingModule;
+
+    public double getGrade() {
+        return grade;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public Field getField() {
+        return field;
+    }
+
+    public TeachingModule getTeachingModule() {
+        return teachingModule;
+    }
 
     @Override
     public String toString() {
@@ -301,14 +445,15 @@ class Grade {
                 this.field.toString(), this.teacher.name);
     }
 
-    public Grade(double grade, Teacher teacher, Student student) {
+    public Grade(double grade, Student student, TeachingModule teachingModule) {
         this.grade = grade;
-        this.teacher = teacher;
+        this.teachingModule = teachingModule;
+        this.teacher = this.teachingModule.teacher;
         teacher.addGrade(this);
         this.student = student;
         student.addGrade(this);
-        this.field = teacher.field;
-        teacher.field.addGrade(this);
+        this.field = teachingModule.field;
+        field.addGrade(this);
     }
 }
 
@@ -358,7 +503,7 @@ public class College {
         return output;
     }
 
-    public void printGrades(){
+    public void printGrades() {
         String output = "grades :\n";
         for (Grade grade : grades) {
             output += grade.toString() + "\n";
@@ -385,6 +530,8 @@ public class College {
     }
 
     public static void main(String[] args) {
+        System.out.println("testing College:");
+
         College myCollege = new College();
 
         // non teaching staff
@@ -401,9 +548,9 @@ public class College {
         Field francais = new Field("francais");
         Field anglais = new Field("anglais");
         // teachers
-        Teacher dupond = new Teacher("Dupond", 1400.37, anglais);
+        Teacher dupond = new Teacher("Dupond", 1400.37);
         myCollege.addPerson(dupond);
-        Teacher isabelle = new Teacher("Isabelle", 1585.26, maths);
+        Teacher isabelle = new Teacher("Isabelle", 1585.26);
         myCollege.addPerson(isabelle);
         // students
         Student billy = new Student("Billy", sixieme);
@@ -411,11 +558,35 @@ public class College {
         Student toto = new Student("Toto", troisieme);
         myCollege.addPerson(toto);
 
+        // Teaching modules
+        TeachingModule troisiemeAMaths = new TeachingModule(isabelle, maths, troisieme);
+        TeachingModule troisiemeAAnglais = new TeachingModule(dupond, anglais, troisieme);
+        TeachingModule sixiemeBFrancais = new TeachingModule(dupond, francais, sixieme);
+        troisiemeAMaths.addStudent(toto);
+        troisiemeAAnglais.addStudent(toto);
+        sixiemeBFrancais.addStudent(billy);
+
         // Grades
-        Grade math_billy_october = new Grade(12, isabelle, billy);
-        System.out.println(math_billy_october);
-        myCollege.addGrade(math_billy_october);
-        myCollege.addGrade(new Grade(8, dupond, toto));
+        Grade math_toto = new Grade(12, toto, troisiemeAMaths);
+        System.out.println(math_toto);
+        Grade francais_billy = new Grade(8, billy, sixiemeBFrancais);
+        System.out.println(francais_billy);
+        Grade anglais_toto = new Grade(8, toto, troisiemeAAnglais);
+        System.out.println(anglais_toto);
+
+        // test teachers
+        System.out.println("\nisabelle ne doit enseigner que les maths");
+        System.out.println(isabelle);
+
+        System.out.println("\ndupond enseigne le francais et l'anglais");
+        System.err.println(dupond);
+
+        // test students
+        System.out.println("\ntoto a isabelle et dupond comme prof");
+        System.out.println(toto);
+
+        System.out.println("\nbilly n'a que dupond comme prof");
+        System.out.println(billy);
 
         System.out.println(myCollege);
 
