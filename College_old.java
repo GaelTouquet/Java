@@ -457,7 +457,7 @@ class Grade {
     }
 }
 
-public class College {
+public class College_old {
 
     ArrayList<Person> persons = new ArrayList<Person>();
     ArrayList<Grade> grades = new ArrayList<Grade>();
@@ -526,13 +526,13 @@ public class College {
         return output;
     }
 
-    public College() {
+    public College_old() {
     }
 
     public static void main(String[] args) {
         System.out.println("testing College:");
 
-        College myCollege = new College();
+        College_old myCollege = new College_old();
 
         // non teaching staff
         Secretary michel = new Secretary("michel", 1258.35);
